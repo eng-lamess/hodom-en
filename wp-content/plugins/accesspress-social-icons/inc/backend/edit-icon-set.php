@@ -13,7 +13,7 @@ $icon_extra = unserialize($icon_set->icon_extra);
         <div class="aps-message aps-message-success updated">
             <p>
                 <?php
-                echo __('Icon Set Updated Successfully','accesspress-social-icons');
+                __e('Icon Set Updated Successfully','accesspress-social-icons');
                 ?>
             </p>
         </div>

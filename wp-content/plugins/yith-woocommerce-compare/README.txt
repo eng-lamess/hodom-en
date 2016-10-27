@@ -3,8 +3,8 @@
 Contributors: yithemes
 Tags: wc, shop, woocommerce, compare, compare products, product compare, widget, comparison, product comparison, compare table
 Requires at least: 3.5.1
-Tested up to: 4.5.2
-Stable tag: 2.0.9
+Tested up to: 4.6.1
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,17 @@ yith-woocommerce-compare-<WORDPRESS LOCALE >.mo
 3. The settings of plugin
 
 == Changelog ==
+
+= 2.1.0 = Released on Oct 19, 2016
+
+* Added: Support to WooCommerce 2.6.4
+* Added: Support to WordPress 4.6
+* Added: Auto remove from compare list for products that are private or were cancelled.
+* Added: Add as default fields Weight and Dimensions.
+* Fixed: Uncaught ReferenceError "redirect_to_cart is not defined" error on "add to cart" action.
+* Fixed: Compatibility issue with NextGen Gallery plugin.
+* Updated: Plugin Core.
+* Updated: Language Files.
 
 = 2.0.9 = Released on Jun 13, 2016
 
@@ -225,7 +236,13 @@ Full documentation is available [here](http://yithemes.com/docs-plugins/yith-woo
 
 == Upgrade notice ==
 
-= 2.0.9 = Released on Jun 13, 2016
+= 2.1.0 = Released on Oct 19, 2016
 
-* Added: Support to WooCommerce 2.6 RC1
+* Added: Support to WooCommerce 2.6.4
+* Added: Support to WordPress 4.6
+* Added: Auto remove from compare list for products that are private or were cancelled.
+* Added: Add as default fields Weight and Dimensions.
+* Fixed: Uncaught ReferenceError "redirect_to_cart is not defined" error on "add to cart" action.
+* Fixed: Compatibility issue with NextGen Gallery plugin.
 * Updated: Plugin Core.
+* Updated: Language Files.

@@ -4,7 +4,7 @@ Tags: social count, social counter, social counters, social media counters, soci
 Donate link: http://accesspressthemes.com/donation/
 Requires at least: 4.0
 Tested up to: 4.6
-Stable tag: 1.6.5
+Stable tag: 1.6.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,9 @@ Once you install the plugin , you can check some general documentation about how
 5. Backend Cache Settings Section
 
 == Changelog ==
+= 1.6.6 = 
+* Updated documentation URL
+
 = 1.6.5 = 
 * Removed session from backend
 

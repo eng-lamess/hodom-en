@@ -15,10 +15,10 @@ $aptf_settings = $this->aptf_settings;
             </ul>
         </div>
         <div class="aptf-board-wrapper">
-            <?php if (isset($_SESSION['aptf_msg'])) { ?>
+            <?php if (isset($_GET['message'])) { ?>
                 <div class="aptf-message"><?php
-                    echo $_SESSION['aptf_msg'];
-                    unset($_SESSION['aptf_msg']);
+                    echo __('Settings Saved Successfully','accesspress-twitter-feed');
+                    
                     ?></div>
             <?php }
             ?>

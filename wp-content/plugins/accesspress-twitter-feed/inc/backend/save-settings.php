@@ -37,6 +37,5 @@ $aptf_settings = array('consumer_key' => $consumer_key,
 );
 $aptf_settings = apply_filters('aptf_settings',$aptf_settings);
 update_option('aptf_settings', $aptf_settings);
-$_SESSION['aptf_msg'] = __('Settings Saved Successfully','accesspress-twitter-feed');
-wp_redirect(admin_url().'admin.php?page=ap-twitter-feed');
+wp_redirect(admin_url().'admin.php?page=ap-twitter-feed&message=1');
 

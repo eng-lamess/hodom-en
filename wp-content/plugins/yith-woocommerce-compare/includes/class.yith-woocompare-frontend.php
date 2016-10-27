@@ -91,8 +91,7 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
             // set coookiename
             if ( is_multisite() ) $this->cookie_name .= '_' . get_current_blog_id();
 
-            // populate the list of products
-            $this->products_list = isset( $_COOKIE[ $this->cookie_name ] ) ? json_decode( maybe_unserialize( $_COOKIE[ $this->cookie_name ] ) ) : array();
+            add_action( 'init', array( $this, 'populate_products_list' ), 10 );
 
             // populate default fields for the comparison table
             $this->default_fields = YITH_Woocompare_Helper::standard_fields();
@@ -130,19 +129,62 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
         }
 
         /**
+         * Populate the compare product list
+         */
+        public function populate_products_list(){
+
+            global $sitepress;
+
+            /**
+             * WPML Support
+             */
+            $lang = isset( $_REQUEST['lang'] ) ? $_REQUEST['lang'] : false;
+
+            // get cookie val
+            $the_list = isset( $_COOKIE[ $this->cookie_name ] ) ? json_decode( $_COOKIE[ $this->cookie_name ] ) : array();
+
+            // switch lang for WPML
+            if( defined( 'ICL_LANGUAGE_CODE' ) && $lang && isset( $sitepress ) ) {
+                $sitepress->switch_lang( $lang, true );
+            }
+
+            foreach( $the_list as $product_id ) {
+                if( function_exists( 'wpml_object_id_filter' ) ) {
+                    $product_id_translated = wpml_object_id_filter( $product_id, 'product', false );
+                    // get all product of current lang
+                    if ( $product_id_translated !== $product_id ) {
+                        continue;
+                    }
+                }
+
+                // check for deleted|private products
+                $product = wc_get_product( $product_id );
+                if( ! $product || $product->post->post_status !== 'publish' ) {
+                    continue;
+                }
+
+                $this->products_list[] = $product_id;
+            }
+        }
+
+        /**
          * Enqueue the scripts and styles in the page
          */
         public function enqueue_scripts() {
 
             // scripts
-            wp_enqueue_script( 'yith-woocompare-main', YITH_WOOCOMPARE_ASSETS_URL . '/js/woocompare.js', array('jquery'), $this->version, true );
+            $min = ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '.min' : '';
+            wp_register_script( 'yith-woocompare-main', YITH_WOOCOMPARE_ASSETS_URL . '/js/woocompare' . $min .'.js', array('jquery'), $this->version, true );
+
+            // enqueue and add localize
+            wp_enqueue_script( 'yith-woocompare-main' );
             wp_localize_script( 'yith-woocompare-main', 'yith_woocompare', array(
                 'ajaxurl'   => version_compare( WC()->version, '2.4', '>=' ) ? WC_AJAX::get_endpoint( "%%endpoint%%" ) : admin_url( 'admin-ajax.php', 'relative' ),
                 'actionadd' => $this->action_add,
                 'actionremove' => $this->action_remove,
                 'actionview' => $this->action_view,
-                'added_label' => __( 'Added', 'yith-woocommerce-compare' ),
-                'table_title' => __( 'Product Comparison', 'yith-woocommerce-compare' ),
+                'added_label' => apply_filters( 'yith_woocompare_compare_added_label', __( 'Added', 'yith-woocommerce-compare' ) ),
+                'table_title' => apply_filters( 'yith_woocompare_compare_table_title',__( 'Product Comparison', 'yith-woocommerce-compare' ) ),
                 'auto_open' => get_option( 'yith_woocompare_auto_open', 'yes' ),
                 'loader'    => YITH_WOOCOMPARE_ASSETS_URL . '/images/loader.gif',
                 'button_text' => get_option('yith_woocompare_button_text')
@@ -161,6 +203,7 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
         /**
          * The fields to show in the table
          *
+         * @param array $products
          * @return mixed|void
          * @since 1.0.0
          */
@@ -249,25 +292,14 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
          * @return array The complete list of products with all attributes value
          */
         public function get_products_list( $products = array() ) {
-
-            global $sitepress;
-
             $list = array();
 
-            if( empty( $products ) )
-	            $products = apply_filters( 'yith_woocompare_exclude_products_from_list', $this->products_list );
+            $products = empty( $products ) ? $this->products_list : $products;
+            $products = apply_filters( 'yith_woocompare_exclude_products_from_list', $products );
 
             $fields = $this->fields();
 
             foreach ( $products as $product_id ) {
-
-                // include only product for current language
-                if( function_exists( 'wpml_object_id_filter' ) ) {
-                    $product_translated = wpml_object_id_filter( $product_id, 'product', false );
-                    if ( $product_translated !== $product_id ) {
-                        continue;
-                    }
-                }
 
                 $product = $this->wc_get_product( $product_id );
 
@@ -299,6 +331,21 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
                             }
                             $product->fields[$field] = sprintf( '<span class="%s">%s</span>', esc_attr( $availability['class'] ), esc_html( $availability['availability'] ) );
                             break;
+                        case 'weight':
+                            if( $weight = $product->get_weight() ){
+                                $weight = wc_format_localized_decimal( $weight ) . ' ' . esc_attr( get_option( 'woocommerce_weight_unit' ) );
+                            }
+                            else {
+                                $weight = '-';
+                            }
+                            $product->fields[$field] = sprintf( '<span>%s</span>', esc_html( $weight ) );
+                            break;
+                        case 'dimensions':
+                            if( ! $dimensions = $product->get_dimensions() ) {
+                                $dimensions = '-';
+                            }
+                            $product->fields[$field] = sprintf( '<span>%s</span>', esc_html( $dimensions ) );
+                            break;
                         default:
                             if ( taxonomy_exists( $field ) ) {
                                 $product->fields[$field] = array();
@@ -310,7 +357,8 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
                                     }
                                 }
                                 $product->fields[$field] = implode( ', ', $product->fields[$field] );
-                            } else {
+                            }
+                            else {
                                 do_action_ref_array( 'yith_woocompare_field_' . $field, array( $product, &$product->fields ) );
                             }
                             break;
@@ -330,7 +378,6 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
          * @return string The url to add the product in the comparison table
          */
         public function view_table_url( $product_id = false ) {
-
 	        $url_args = array(
 		        'action'    => $this->action_view,
 		        'iframe'    => true
@@ -351,7 +398,6 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
          * @return string The url to add the product in the comparison table
          */
         public function add_product_url( $product_id ) {
-
             $url_args = array(
                 'action' => $this->action_add,
                 'id' => $product_id
@@ -362,7 +408,7 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
                 $url_args['lang'] = $lang;
             }
 
-            return apply_filters( 'yith_woocompare_add_product_url', esc_url_raw( add_query_arg( $url_args ) ), $this->action_add );
+            return apply_filters( 'yith_woocompare_add_product_url', esc_url_raw( add_query_arg( $url_args, site_url() ) ), $this->action_add );
         }
 
         /**
@@ -376,7 +422,7 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
                 'action' => $this->action_remove,
                 'id' => $product_id
             );
-            return apply_filters( 'yith_woocompare_remove_product_url', esc_url_raw( add_query_arg( $url_args ) ), $this->action_remove );
+            return apply_filters( 'yith_woocompare_remove_product_url', esc_url_raw( add_query_arg( $url_args, site_url() ) ), $this->action_remove );
         }
 
         /**
@@ -398,8 +444,8 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
 
             if ( ! isset( $button_text ) || $button_text == 'default' ) {
                 $button_text = get_option( 'yith_woocompare_button_text', __( 'Compare', 'yith-woocommerce-compare' ) );
-                yit_wpml_register_string( 'Plugins', 'plugin_yit_compare_button_text', $button_text );
-                $button_text = yit_wpml_string_translate( 'Plugins', 'plugin_yit_compare_button_text', $button_text );
+                do_action ( 'wpml_register_single_string', 'Plugins', 'plugin_yit_compare_button_text', $button_text );
+                $button_text = apply_filters( 'wpml_translate_single_string', $button_text, 'Plugins', 'plugin_yit_compare_button_text' );
             }
 
             printf( '<a href="%s" class="%s" data-product_id="%d" rel="nofollow">%s</a>', $this->add_product_url( $product_id ), 'compare' . ( $is_button == 'button' ? ' button' : '' ), $product_id, $button_text );
@@ -454,7 +500,7 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
          * The action called by the query string
          */
         public function add_product_to_compare_action() {
-            if ( defined( 'DOING_AJAX' ) && DOING_AJAX || ! isset( $_REQUEST['action'] ) || $_REQUEST['action'] != $this->action_add ) {
+            if ( defined( 'DOING_AJAX' ) && DOING_AJAX ||  ! isset( $_REQUEST['id'] ) || ! isset( $_REQUEST['action'] ) || $_REQUEST['action'] != $this->action_add ) {
                 return;
             }
 
@@ -595,12 +641,12 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
              */
             global $sitepress;
 
-            if( defined( 'ICL_LANGUAGE_CODE' ) &&  $lang != false && isset( $sitepress )) {
+            if( defined( 'ICL_LANGUAGE_CODE' ) && $lang && isset( $sitepress )) {
                 $sitepress->switch_lang( $lang, true );
             }
 
             if ( empty( $this->products_list ) ) {
-                echo '<li>' . __( 'No products to compare', 'yith-woocommerce-compare' ) . '</li>';
+                echo '<li class="list_empty">' . __( 'No products to compare', 'yith-woocommerce-compare' ) . '</li>';
                 return ob_get_clean();
             }
 
@@ -610,13 +656,15 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
 	                continue;
                 ?>
                 <li>
-                    <a class="title" href="<?php echo get_permalink( $product_id ) ?>"><?php echo $product->get_title() ?></a>
                     <a href="<?php echo $this->remove_product_url( $product_id ) ?>" data-product_id="<?php echo $product_id; ?>" class="remove" title="<?php _e( 'Remove', 'yith-woocommerce-compare' ) ?>">x</a>
+                    <a class="title" href="<?php echo get_permalink( $product_id ) ?>"><?php echo $product->get_title() ?></a>
                 </li>
             <?php
             }
 
-            return ob_get_clean();
+            $return = ob_get_clean();
+
+            return apply_filters( 'yith_woocompare_widget_products_html', $return, $this->products_list, $this );
         }
 
         /**
@@ -686,6 +734,5 @@ if( !class_exists( 'YITH_Woocompare_Frontend' ) ) {
             $wc_get_product = function_exists( 'wc_get_product' ) ? 'wc_get_product' : 'get_product';
             return $wc_get_product( $product_id );
         }
-
     }
 }

@@ -17,7 +17,7 @@ The available social media in FREE version are: Facebook, Twitter, Google+, Inst
 			<a href="https://accesspressthemes.com/wordpress-plugins/accesspress-social-counter/" target="_blank">https://accesspressthemes.com/wordpress-plugins/accesspress-social-counter/</a></p>
 			<div class="halfseperator"></div>
 			<p><strong>Plugin documentation can be found here:</strong><br />
-				<a href="https://accesspressthemes.com/documentation/documentation-plugin-instruction-accesspress-social-counter/" target="_blank">https://accesspressthemes.com/documentation/documentation-plugin-instruction-accesspress-social-counter/</a></p>
+				<a href="https://accesspressthemes.com/documentation/accesspress-social-counter/" target="_blank">https://accesspressthemes.com/documentation/accesspress-social-counter/</a></p>
 				<div class="halfseperator"></div>
 				
 					

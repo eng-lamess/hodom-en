@@ -4,7 +4,7 @@ defined('ABSPATH') or die('No script kiddies please!');
  * Plugin Name: AccessPress Twitter Feed
  * Plugin URI: https://accesspressthemes.com/wordpress-plugins/accesspress-twitter-feed/
  * Description: A plugin to show your twitter feed in your site with various configurable settings
- * Version: 1.5.0
+ * Version: 1.5.1
  * Author: AccessPress Themes
  * Author URI: http://accesspressthemes.com
  * Text Domain: accesspress-twitter-feed
@@ -24,7 +24,7 @@ if (!defined('APTF_CSS_DIR')) {
     define('APTF_CSS_DIR', plugin_dir_url(__FILE__) . 'css');
 }
 if (!defined('APTF_VERSION')) {
-    define('APTF_VERSION', '1.5.0');
+    define('APTF_VERSION', '1.5.1');
 }
 
 if (!defined('APTF_TD')) {
@@ -45,7 +45,6 @@ if (!class_exists('APTF_Class')) {
         function __construct() {
             $this->aptf_settings = get_option('aptf_settings');
             add_action('init', array($this, 'load_text_domain')); //loads plugin text domain for internationalization
-            add_action('admin_init', array($this, 'session_init')); //starts session in admin section
             add_action('admin_menu', array($this, 'add_plugin_admin_menu')); //adds the menu in admin section
             add_action('admin_enqueue_scripts', array($this, 'register_admin_scripts')); //registers scripts and css for admin section
             register_activation_hook(__FILE__, array($this, 'load_default_settings')); //loads default settings for the plugin while activating the plugin
@@ -66,15 +65,7 @@ if (!class_exists('APTF_Class')) {
             load_plugin_textdomain('accesspress-twitter-feed', false, basename(dirname(__FILE__)) . '/languages');
         }
 
-        /**
-         * Starts Session
-         */
-        function session_init() {
-            if (!session_id()) {
-                session_start();
-            }
-        }
-
+        
         /**
          * Loads Default Settings
          */

@@ -4,7 +4,7 @@ Tags: social icon, social icons, social media, social icon widget, social icons 
 Donate link: http://accesspressthemes.com/donation/
 Requires at least: 4.0
 Tested up to: 4.6
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,9 @@ Once you install the plugin , you can check some general documentation about how
 4. Backend Lcon Sets Listing 
 
 == Changelog ==
+= 1.6.2 = 
+* Done small modification in backend message display
+
 = 1.6.1 = 
 * Removed session from backend 
 

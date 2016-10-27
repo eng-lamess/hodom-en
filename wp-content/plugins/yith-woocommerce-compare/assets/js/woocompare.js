@@ -31,8 +31,8 @@ jQuery(document).ready(function($) {
                 }
 
                 button.addClass('added')
-                        .attr( 'href', response.table_url )
-                        .text( yith_woocompare.added_label );
+                    .attr( 'href', response.table_url )
+                    .text( yith_woocompare.added_label );
 
                 // add the product in the widget
                 widget_list.html( response.widget_table );
@@ -175,7 +175,7 @@ jQuery(document).ready(function($) {
 
     $('.yith-woocompare-widget')
 
-        // view table (click on compare
+    // view table (click on compare
         .on('click', 'a.compare', function (e) {
             e.preventDefault();
             $('body').trigger('yith_woocompare_open_popup', { response: $(this).attr('href') });
